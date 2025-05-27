@@ -1,147 +1,188 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Home from './pages/Home';
+import About from './pages/About';
+import Packages from './pages/Packages';
+import Recommend from './pages/Recommend';
 
 function App() {
-  const [destination, setDestination] = useState('');
-  const [preferences, setPreferences] = useState('');
-  const [days, setDays] = useState('');
-  const [itinerary, setItinerary] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [hovered, setHovered] = useState(null);
 
-  const generateItinerary = async () => {
-    setLoading(true);
-    setItinerary('');
-
-    try {
-      const response = await fetch('http://localhost:5050/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          destination,
-          preferences: preferences.split(',').map(s => s.trim()),
-          days: Number(days),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setItinerary(`Error: ${data.error || 'Unknown error occurred'}`);
-      } else {
-        setItinerary(data.itinerary || 'No itinerary returned.');
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-      setItinerary('Something went wrong: ' + error.message);
-    }
-
-    setLoading(false);
-  };
+  const getLinkStyle = (linkName) => ({
+    fontSize: '1.25rem',
+    cursor: 'pointer',
+    paddingBottom: '6px',
+    borderBottom: hovered === linkName ? '3px solid #ffca28' : '3px solid transparent',
+    color: hovered === linkName ? '#ffca28' : 'white',
+    transition: 'color 0.25s ease, border-bottom 0.25s ease',
+    textDecoration: 'none',
+    userSelect: 'none',
+    fontWeight: '600',
+  });
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>TRIPPY</h2>
+    <Router>
+      <div style={styles.wrapper}>
+        <nav style={styles.navbar}>
+          <h1 style={styles.logo}>TRIPPY</h1>
+          <ul style={styles.navLinks}>
+            <li>
+              <Link
+                to="/"
+                style={getLinkStyle('home')}
+                onMouseEnter={() => setHovered('home')}
+                onMouseLeave={() => setHovered(null)}
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/about"
+                style={getLinkStyle('about')}
+                onMouseEnter={() => setHovered('about')}
+                onMouseLeave={() => setHovered(null)}
+              >
+                About
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/packages"
+                style={getLinkStyle('packages')}
+                onMouseEnter={() => setHovered('packages')}
+                onMouseLeave={() => setHovered(null)}
+              >
+                Packages
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/recommend"
+                style={getLinkStyle('recommend')}
+                onMouseEnter={() => setHovered('recommend')}
+                onMouseLeave={() => setHovered(null)}
+              >
+                Recommend
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
-      <input
-        type="text"
-        placeholder="Destination"
-        value={destination}
-        onChange={e => setDestination(e.target.value)}
-        style={styles.input}
-      />
-
-      <input
-        type="text"
-        placeholder="Preferences (comma-separated)"
-        value={preferences}
-        onChange={e => setPreferences(e.target.value)}
-        style={styles.input}
-      />
-
-      <input
-        type="number"
-        placeholder="Number of Days"
-        value={days}
-        onChange={e => setDays(e.target.value)}
-        style={styles.input}
-        min="1"
-      />
-
-      <button
-        onClick={generateItinerary}
-        disabled={loading || !destination.trim() || !days}
-        style={{
-          ...styles.button,
-          ...(loading || !destination.trim() || !days ? styles.buttonDisabled : {}),
-        }}
-      >
-        {loading ? 'Generating...' : 'Generate'}
-      </button>
-
-      {itinerary && (
-        <div style={styles.resultBox}>
-          <h3> Your Itinerary:</h3>
-          <pre style={styles.itineraryText}>{itinerary}</pre>
+        <div style={styles.page}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/packages" element={<Packages />} />
+            <Route path="/recommend" element={<Recommend />} />
+          </Routes>
         </div>
-      )}
-    </div>
+
+        <footer style={styles.footer}>
+          <div style={styles.footerContent}>
+            <div style={styles.footerLinks}>
+              <Link to="/" style={styles.footerLink}>Home</Link>
+              <Link to="/about" style={styles.footerLink}>About</Link>
+              <Link to="/packages" style={styles.footerLink}>Packages</Link>
+              <Link to="/recommend" style={styles.footerLink}>Recommend</Link>
+            </div>
+
+            <div style={styles.socialIcons}>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink} aria-label="Facebook">📘</a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink} aria-label="Twitter">🐦</a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink} aria-label="Instagram">📸</a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink} aria-label="LinkedIn">🔗</a>
+            </div>
+          </div>
+
+          <p style={{ marginTop: 12 }}>
+            © {new Date().getFullYear()} TRIPPY — Explore the world with us 🌍✈️
+          </p>
+        </footer>
+      </div>
+    </Router>
   );
 }
 
 const styles = {
-  container: {
-    maxWidth: 600,
-    margin: '3rem auto',
-    padding: '2rem',
+  wrapper: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    margin: 0,
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    backgroundColor: '#f0f4f8',
-    borderRadius: 12,
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center',
+    backgroundColor: '#f9fbfd',
   },
-  heading: {
-    marginBottom: 24,
-    color: '#1e88e5',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    margin: '8px 0',
-    borderRadius: 8,
-    border: '1.5px solid #ccc',
-    fontSize: 16,
-    boxSizing: 'border-box',
-  },
-  button: {
-    marginTop: 12,
-    padding: '12px 30px',
-    fontSize: 16,
-    fontWeight: '600',
+  navbar: {
+    height: '8vh',
+    backgroundColor: '#1976d2',
     color: 'white',
-    backgroundColor: '#1e88e5',
-    border: 'none',
-    borderRadius: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 2.5rem',
+    marginBottom: '1rem',
+    boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
+    fontWeight: '600',
+  },
+  logo: {
+    fontSize: '2rem',
+    fontWeight: '700',
+    letterSpacing: '3px',
     cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
+    userSelect: 'none',
   },
-  buttonDisabled: {
-    backgroundColor: '#90caf9',
-    cursor: 'not-allowed',
+  navLinks: {
+    listStyle: 'none',
+    display: 'flex',
+    gap: '2.5rem',
+    margin: 0,
+    padding: 0,
   },
-  resultBox: {
-    marginTop: 24,
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: 10,
-    boxShadow: 'inset 0 0 10px #bbdefb',
-    textAlign: 'left',
-    maxHeight: 400,
+  page: {
+    flex: 1,
     overflowY: 'auto',
+    paddingBottom: '2rem',
   },
-  itineraryText: {
-    whiteSpace: 'pre-wrap',
-    fontSize: 15,
-    lineHeight: 1.5,
-    color: '#333',
+  footer: {
+    backgroundColor: '#1976d2',
+    color: 'white',
+    textAlign: 'center',
+    padding: '1.5rem 2rem 2rem',
+    fontWeight: '500',
+    fontSize: '1rem',
+    userSelect: 'none',
+  },
+  footerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    maxWidth: 900,
+    margin: '0 auto',
+    flexWrap: 'wrap',
+    gap: '1rem',
+  },
+  footerLinks: {
+    display: 'flex',
+    gap: '1.5rem',
+    flexWrap: 'wrap',
+  },
+  footerLink: {
+    color: '#ffca28',
+    textDecoration: 'none',
+    fontWeight: '600',
+    fontSize: '1.1rem',
+    cursor: 'pointer',
+    transition: 'color 0.3s ease',
+  },
+  socialIcons: {
+    display: 'flex',
+    gap: '1rem',
+    fontSize: '1.5rem',
+  },
+  socialLink: {
+    color: 'white',
+    textDecoration: 'none',
+    transition: 'color 0.3s ease',
   },
 };
 
